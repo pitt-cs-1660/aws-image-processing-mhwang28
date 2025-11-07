@@ -6,7 +6,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /var/task
 
 COPY pyproject.toml ./
-RUN uv sync --frozen --no-dev
+RUN uv sync
 
 COPY handler.py ./
 
