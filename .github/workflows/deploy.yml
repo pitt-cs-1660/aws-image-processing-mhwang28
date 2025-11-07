@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  AWS_REGION: us-east-1  # update if you are in a different region
+  AWS_REGION: us-east-1
   AWS_LAMBDA_ROLE_ARN: arn:aws:iam::856708425417:role/lambda-image-processing-role
 
 jobs:
@@ -40,17 +40,16 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cd lambdas/resize
-          ######
-          #
-          #  TODO: implement build and push to ECR
-          #
-          ######
-          exit 1
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Check if Lambda function exists
         id: check-lambda-resize
         run: |
-          if aws lambda get-function --function-name resize-lambda --region ${{ env.AWS_REGION }} 2>/dev/null; then
+          if aws lambda get-function --function-name resize-lambda --region ${{ env.AWS_REGION }} >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -77,8 +76,8 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1.1.0
         with:
           function-name: resize-lambda
-          package-type: Image  # no zip!
-          image-uri: ${{ steps.resize-build-image.outputs.image }}  # ECR image URI from previous step
+          package-type: Image
+          image-uri: ${{ steps.resize-build-image.outputs.image }}
           role: ${{ env.AWS_LAMBDA_ROLE_ARN }}
           publish: true
 
@@ -112,17 +111,16 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cd lambdas/greyscale
-          ######
-          #
-          #  TODO: implement build and push to ECR
-          #
-          ######
-          exit 1
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Check if Lambda function exists
         id: check-lambda-greyscale
         run: |
-          if aws lambda get-function --function-name greyscale-lambda --region ${{ env.AWS_REGION }} 2>/dev/null; then
+          if aws lambda get-function --function-name greyscale-lambda --region ${{ env.AWS_REGION }} >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -149,11 +147,10 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1.1.0
         with:
           function-name: greyscale-lambda
-          package-type: Image  # no zip!
-          image-uri: ${{ steps.greyscale-build-image.outputs.image }}  # ECR image URI from previous step
+          package-type: Image
+          image-uri: ${{ steps.greyscale-build-image.outputs.image }}
           role: ${{ env.AWS_LAMBDA_ROLE_ARN }}
           publish: true
-
 
   deploy-exif:
     name: Deploy EXIF Lambda
@@ -185,17 +182,16 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           cd lambdas/exif
-          ######
-          #
-          #  TODO: implement build and push to ECR
-          #
-          ######
-          exit 1
+          docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker tag "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Check if Lambda function exists
         id: check-lambda-exif
         run: |
-          if aws lambda get-function --function-name exif-lambda --region ${{ env.AWS_REGION }} 2>/dev/null; then
+          if aws lambda get-function --function-name exif-lambda --region ${{ env.AWS_REGION }} >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -222,8 +218,7 @@ jobs:
         uses: aws-actions/aws-lambda-deploy@v1.1.0
         with:
           function-name: exif-lambda
-          package-type: Image  # no zip!
-          image-uri: ${{ steps.exif-build-image.outputs.image }}  # ECR image URI from previous step
+          package-type: Image
+          image-uri: ${{ steps.exif-build-image.outputs.image }}
           role: ${{ env.AWS_LAMBDA_ROLE_ARN }}
           publish: true
-
